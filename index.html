@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Kas Sekolah</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      margin: 0; padding: 0;
+    }
+    .container {
+      width: 400px;
+      margin: 80px auto;
+      padding: 25px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    h2 { margin-bottom: 20px; color: #333; }
+    input, button {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    button { background: #28a745; color: white; font-weight: bold; cursor: pointer; }
+    button:hover { background: #218838; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #28a745; color: white; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div class="container" id="loginBox">
+    <h2>🔑 Login Admin</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <!-- KAS PAGE -->
+  <div class="container" id="kasBox" style="display:none;">
+    <h2>📒 Uang Kas</h2>
+    <input type="text" id="nama" placeholder="Nama">
+    <input type="number" id="nominal" placeholder="Nominal">
+    <input type="text" id="keterangan" placeholder="Keterangan">
+    <button onclick="tambahKas()">Tambah Kas</button>
+
+    <table id="tabelKas">
+      <thead>
+        <tr><th>Tanggal</th><th>Nama</th><th>Nominal</th><th>Keterangan</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwUz2HIbCTRILtuvgFg-7wgvegglTtLRkoG51LP6KkP12_9WzUOV4mM-h6ARTk8OGw9/exec"; // Ganti dengan URL dari Apps Script
+
+// LOGIN
+async function login() {
+  let res = await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "login",
+      username: document.getElementById("username").value,
+      password: document.getElementById("password").value
+    })
+  });
+  let json = await res.json();
+  if (json.status === "OK") {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("kasBox").style.display = "block";
+    loadData();
+  } else {
+    alert("❌ Login gagal!");
+  }
+}
+
+// TAMBAH KAS
+async function tambahKas() {
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "add",
+      nama: document.getElementById("nama").value,
+      nominal: document.getElementById("nominal").value,
+      keterangan: document.getElementById("keterangan").value
+    })
+  });
+  loadData();
+}
+
+// AMBIL DATA
+async function loadData() {
+  let res = await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "get" })
+  });
+  let json = await res.json();
+  let tbody = document.querySelector("#tabelKas tbody");
+  tbody.innerHTML = "";
+  if (json.status === "OK") {
+    json.data.forEach((row, i) => {
+      if (i === 0) return; // skip header
+      tbody.innerHTML += `<tr>
+        <td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td>
+      </tr>`;
+    });
+  }
+}
+</script>
+</body>
+</html>
